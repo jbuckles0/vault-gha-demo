@@ -1,0 +1,50 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches: ["main"]
+
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+      environment:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+            url: https://vault-demo-cluster-public-vault-1d120bc0.7871b4b6.z1.hashicorp.cloud:8200
+            tlsSkipVerify: true
+            namespace: admin
+            method: jwt
+            role: gh-action-demo
+            secrets: |
+                cicd/data/api_key secret | API_KEY ;
+      - name: Replace secret placeholder
+        run: |
+          sed -i 's/\[SECRET_PLACEHOLDER\]/${{ env.API_KEY }}/g' index.html
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
