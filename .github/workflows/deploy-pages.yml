@@ -31,7 +31,7 @@ jobs:
         with:
             url: https://vault-shared-prod-us-west-2-public-vault-9cfd9b36.37d008b5.z1.hashicorp.cloud:8200
             tlsSkipVerify: true
-            namespace: admin
+            namespace: admin/hc-jacob-buckles
             method: jwt
             role: gh-action-demo
             secrets: |
